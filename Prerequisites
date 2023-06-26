@@ -1,0 +1,13 @@
+Install putty/puttyGen
+Install docker on amazon linux - https://www.cyberciti.biz/faq/how-to-install-docker-on-amazon-linux-2/
+ -  1   yum update
+    2   yum search docker
+    3   yum info docker
+    4   yum install docker   
+    5  systemctl enable docker.service
+    6  systemctl status docker.service
+    7  systemctl start docker.service
+    8  systemctl status docker.service
+    9  usermod -a -G docker ec2-user
+   10  newgrp docker  # Reload a Linux user's group assignments to docker w/o logout
+   11  chmod 666 /var/run/docker.sock  # Run this command if you are unable to run docker commands with ec2-user acctount

@@ -1,0 +1,54 @@
+Prerequiste:
+kubectl run mycurlpod --image=curlimages/curl -i --tty -- sh
+
+1 helm repo add traefik https://traefik.github.io/charts
+2 helm install traefik traefik/traefik -n demos
+3 kubectl expose deployment traefik -n demos --port=9100 --target-port=9100 --name=traefik-metrics
+4 kubectl exec to any of the pods in the cluster and run below command
+curl http://traefik-metrics.demos.svc.cluster.local:9100/metrics
+
+IngressRoute for Exposing Nginx application:
+$ ]  cat nginx-ingress-route.yaml
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: nginx-ingress
+spec:
+  entryPoints:
+    - websecure
+  routes:
+  - match: Host(`a109aab2767c8427d8d35a6fc13a8cb8-573317660.us-east-1.elb.amazonaws.com`)
+    kind: Rule
+    services:
+    - name: nginx-release
+      port: 80
+
+]$ kubectl apply -f nginx-ingress-route.yaml -n demos
+]$ kubectl get ingressroute -n demos
+NAME            AGE
+nginx-ingress   4h29m
+
+]$ kubectl get ingressroute nginx-ingress -n demos -oyaml
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"traefik.containo.us/v1alpha1","kind":"IngressRoute","metadata":{"annotations":{},"name":"nginx-ingress","namespace":"demos"},"spec":{"entryPoints":["websecure"],"routes":[{"kind":"Rule","match":"Host(`a109aab2767c8427d8d35a6fc13a8cb8-573317660.us-east-1.elb.amazonaws.com`)","services":[{"name":"nginx-release","port":80}]}]}}
+  creationTimestamp: "2023-06-24T09:22:28Z"
+  generation: 1
+  name: nginx-ingress
+  namespace: demos
+  resourceVersion: "1250503"
+  uid: 554e966b-7d15-4acd-9ad2-a8485b8fcb06
+spec:
+  entryPoints:
+  - websecure
+  routes:
+  - kind: Rule
+    match: Host(`a109aab2767c8427d8d35a6fc13a8cb8-573317660.us-east-1.elb.amazonaws.com`)
+    services:
+    - name: nginx-release
+      port: 80
+

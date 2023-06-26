@@ -1,0 +1,34 @@
+Reference:
+https://github.com/docker-library/docs/tree/master/nginx
+https://hub.docker.com/repository/create?namespace=zero2pro1
+https://hub.docker.com/repository/docker/zero2pro1/nginx/general
+
+Dockerfile:
+------------------------------------
+FROM oraclelinux:8
+
+LABEL maintainer="Nginx Docker Maintainers"
+
+RUN yum install -y nginx
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
+----------------------------------------
+
+Commands:
+1   cd /home/ec2-user/projects/proj-1
+2   docker build -t zero2pro-nginx-image .
+3   docker images
+REPOSITORY             TAG       IMAGE ID       CREATED          SIZE
+zero2pro-nginx-image   latest    29f3a77b0ce9   3 minutes ago    511MB
+
+4  docker run --name nginx-prj1 -p 80:80 -d zero2pro-nginx-image
+
+Now go to browser and hit enter on http://13.233.95.113
+This will render default index.html contents from nginx container.
+
+Push Image to Docker Hub:
+1  docker tag zero2pro-nginx-image zero2pro1/nginx:basic
+2  docker login -u username -p password
+3  docker push zero2pro1/nginx:basic

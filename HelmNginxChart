@@ -1,0 +1,113 @@
+https://github.com/zero2pro1/zero2pro1.github.io
+References:
+https://www.opcito.com/blogs/creating-helm-repository-using-github-pages
+https://kodekloud.com/blog/uploading-a-helm-chart/
+https://helm.sh/docs/helm/helm_repo_index/#helm
+
+
+Git Initialization:
+1  ssh-keygen
+2  cat ~/.ssh/id_rsa.pub
+3  sudo yum install git
+4  git clone git@github.com:zero2pro1/zero2pro1.github.io.git # create repo name as <git-username>.github.io
+5  cd zero2pro1.github.io/
+
+Helm Installation:
+1  curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+2  chmod 700 get_helm.sh
+3  ./get_helm.sh
+
+Nginx Helm Chart:
+1  mkdir helm-charts && mkdir charts
+2  cd charts
+3  helm create nginx
+4  ]$ ls nginx
+Chart.yaml  charts  templates  values.yaml
+5  Update image value in values.yaml
+image:
+  repository: zero2pro1/nginx
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: "basic"
+6  Update appVersion in Charts.yaml #This is nginx application version
+7  helm lint nginx  # This command validates helm chart syntax
+8  cd ../helm-charts && helm package charts/nginx/
+9  cd .. && echo -e “User-Agent: *\nDisallow: /” > robots.txt  #This is optional, this will prevent bots to crawl your repos
+10 helm repo index --url https://zero2pro1.github.io/helm-charts .
+11 ]$ ls
+charts  index.yaml  helm-charts  robots.txt
+
+index.yaml contents:
+apiVersion: v1
+entries:
+  nginx:
+  - apiVersion: v2
+    appVersion: 1.14.1
+    created: "2023-05-05T18:34:17.858788929Z"
+    description: An Nginx Helm chart for Kubernetes
+    digest: d1a5025713999222a274dfdd009dad3bc615b916ba25a0f8858835a266cebea0
+    name: nginx
+    type: application
+    urls:
+    - https://zero2pro1.github.io/helm-charts/nginx-0.1.0.tgz
+    version: 0.1.0
+generated: "2023-05-05T18:34:17.858028093Z"
+
+
+However, you can use --merge flag to add new charts to an existing index incrementally.yaml:
+
+helm repo index --url <github_repository_path> --merge index.yaml .
+
+Push code to github repository:
+1  git add .
+2  git commit -m 'Upload nginx helm chart to github'
+3  git status
+4  git push origin main
+
+Host your chart in Github:
+1  Go to settings > pages
+2  Choose the source branch and click save
+3  This generates a link for your public helm chart repository, click on it.
+4  helm repo add zero2pro https://zero2pro1.github.io/helm-charts/
+5  helm repo update
+6  helm search repo zero2pro/nginx
+NAME            CHART VERSION   APP VERSION     DESCRIPTION
+zero2pro/nginx  0.1.0           1.14.1          An Nginx Helm chart for Kubernetes
+
+Helm Install Chart:
+1 helm upgrade -i nginx-release zero2pro/nginx -n demos --create-namespace
+2 kubectl get pods -n demos
+
+Nginx VTS Exporter:
+Reference -> https://medium.com/@shevtsovav/ready-for-scraping-nginx-metrics-nginx-vts-exporter-prometheus-grafana-26c14816ae7c
+
+1 Perhaps your Nginx compilation have already included vts module. You can check that by running following command:
+nginx -V 2>&1 | grep -o with-http_stub_status_module
+If not refer above document on how to include vts module into nginx.
+
+2 In the http section of the /etc/nginx/nginx.conf configuration file, add the following line
+http {
+    vhost_traffic_status_zone;
+    ... 
+} 
+OR if you added module dynamically check that module included,
+load_module modules/ngx_http_vhost_traffic_status_module.so;
+...
+http {
+    vhost_traffic_status_zone;
+    ... 
+}
+
+3 In the server section, we proxing outside requests for 8080 port on /status location. This is a basic configuration.
+server {
+ listen 8080;
+ listen [::]:8080;
+ location / {
+ }
+ location /status {
+   vhost_traffic_status_display;
+   vhost_traffic_status_display_format html; 
+ }
+}
+
+

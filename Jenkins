@@ -1,0 +1,45 @@
+Docker Compose File::
+version: '2'
+services:
+  jenkins:
+    build:
+      context: .
+      dockerfile: Dockerfile-jenkins-aws
+    image: jenkins:awscli
+    container_name: jenkins
+    volumes:
+      - /opt/jenkins/jenkins-data:/var/jenkins_home
+      - $HOME/.aws:/var/jenkins_home/.aws
+    ports:
+      - "8080:8080"
+    networks:
+      - net
+networks:
+  net:
+
+Dockerfile-jenkins-aws:
+FROM jenkins/jenkins:centos7-jdk11
+
+RUN whoami
+WORKDIR /opt/jenkins
+USER root
+RUN yum install sudo -y
+RUN curl "https://s3.amazonaws.com/aws-cli/awscli-bundle-1.18.200.zip" -o "awscli-bundle.zip"
+RUN unzip awscli-bundle.zip
+RUN ./awscli-bundle/install -i /usr/local/aws -b /usr/local/bin/aws
+ENV VERIFY_CHECKSUM=false
+RUN curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+RUN chmod 700 get_helm.sh
+RUN ./get_helm.sh
+
+]$ docker compose -f docker-compose-awscli.yml up -d 
+
+Jenkins Build Steps:
+export KUBECONFIG=/var/jenkins_home/kubeconfig
+helm repo add zero2pro https://zero2pro1.github.io/helm-charts
+helm repo update
+helm search repo zero2pro/nginx
+aws --version
+helm upgrade -i nginx-release zero2pro/nginx -n demos --create-namespace
+kubectl get pods -n demos
+
