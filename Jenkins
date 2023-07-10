@@ -35,11 +35,9 @@ RUN ./get_helm.sh
 ]$ docker compose -f docker-compose-awscli.yml up -d 
 
 Jenkins Build Steps:
-export KUBECONFIG=/var/jenkins_home/kubeconfig
+export KUBECONFIG=/var/lib/jenkins/kubeconfig
 helm repo add zero2pro https://zero2pro1.github.io/helm-charts
 helm repo update
 helm search repo zero2pro/nginx
-aws --version
-helm upgrade -i nginx-release zero2pro/nginx -n demos --create-namespace
+helm upgrade -i nginx-release zero2pro/nginx -n demos 
 kubectl get pods -n demos
-
