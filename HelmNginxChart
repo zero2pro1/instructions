@@ -31,7 +31,7 @@ image:
   tag: "basic"
 6  Update appVersion in Charts.yaml #This is nginx application version
 7  helm lint nginx  # This command validates helm chart syntax
-8  cd ../helm-charts && helm package charts/nginx/
+8  cd ../helm-charts && helm package ../charts/nginx/
 9  cd .. && echo -e “User-Agent: *\nDisallow: /” > robots.txt  #This is optional, this will prevent bots to crawl your repos
 10 helm repo index --url https://zero2pro1.github.io/helm-charts .
 11 ]$ ls
