@@ -79,36 +79,6 @@ Helm Install Chart:
 1 helm upgrade -i nginx-release zero2pro/nginx -n demos --create-namespace
 2 kubectl get pods -n demos
 
-Nginx VTS Exporter:
-Reference -> https://medium.com/@shevtsovav/ready-for-scraping-nginx-metrics-nginx-vts-exporter-prometheus-grafana-26c14816ae7c
 
-1 Perhaps your Nginx compilation have already included vts module. You can check that by running following command:
-nginx -V 2>&1 | grep -o with-http_stub_status_module
-If not refer above document on how to include vts module into nginx.
-
-2 In the http section of the /etc/nginx/nginx.conf configuration file, add the following line
-http {
-    vhost_traffic_status_zone;
-    ... 
-} 
-OR if you added module dynamically check that module included,
-load_module modules/ngx_http_vhost_traffic_status_module.so;
-...
-http {
-    vhost_traffic_status_zone;
-    ... 
-}
-
-3 In the server section, we proxing outside requests for 8080 port on /status location. This is a basic configuration.
-server {
- listen 8080;
- listen [::]:8080;
- location / {
- }
- location /status {
-   vhost_traffic_status_display;
-   vhost_traffic_status_display_format html; 
- }
-}
 
 
