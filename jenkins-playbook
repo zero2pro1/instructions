@@ -1,0 +1,61 @@
+---
+- hosts: jenkins
+  become: yes
+  become_user: root
+  tasks:
+  - name: Download Long Term Jenkins release
+    get_url:
+      url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+      dest: /etc/yum.repos.d/jenkins.repo
+
+  - name: Import jenkins key from url
+    ansible.builtin.rpm_key:
+      state: present
+      key: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+
+  - name: yum update
+    yum:
+      name: '*'
+      state: latest
+
+  - name: Install java
+    dnf:
+      name: java-11-amazon-corretto
+      state: present
+
+  - name: Install jenkins
+    yum:
+      name: jenkins
+      state: latest
+
+  - name: daemon-reload to pick up config changes
+    ansible.builtin.systemd:
+      daemon_reload: yes
+
+  - name: Start jenkins
+    ansible.builtin.systemd:
+      name: jenkins
+      state: started
+  - name: Disable jenkins setup wizard
+    get_url:
+      url: https://github.com/zero2pro1/instructions/blob/main/default-jenkins
+      dest: /etc/default/jenkins
+  - name: Create a Directory under jenkins home
+    ansible.builtin.file:
+      path: /var/lib/jenkins/init.groovy.d
+      state: directory
+      owner: jenkins
+      group: jenkins
+      mode: '0755'
+
+  - name: Place basic security script in groovy directory
+    get_url:
+      url: https://github.com/zero2pro1/instructions/blob/main/basic-security.groovy
+      dest: /var/lib/jenkins/init.groovy.d
+      owner: jenkins
+      group: jenkins
+      mode: 0777
+  - name: Restart jenkins
+    ansible.builtin.systemd:
+      name: jenkins
+      state: restarted
