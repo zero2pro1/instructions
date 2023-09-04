@@ -1,0 +1,1 @@
+JAVA_ARGS="-Djenkins.install.runSetupWizard=false"
